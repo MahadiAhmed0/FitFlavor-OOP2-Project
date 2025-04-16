@@ -10,5 +10,13 @@ public class Authenticator {
         userDatabase = new HashMap<>();
         loadUsersFromFile();
     }
+
+    public boolean isUsernameTaken(String username) {
+        return userDatabase.containsKey(username);
+    }
+
+    public boolean isPasswordValid(String password){
+        return password.length() >= 6;
+    }
     
 }
