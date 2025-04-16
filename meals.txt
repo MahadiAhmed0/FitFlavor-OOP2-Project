@@ -1,0 +1,6 @@
+Oatmeal with Berries;250;Oats,Milk,Berries,Honey;4.5;6.0
+Grilled Chicken Salad;350;Chicken,Lettuce,Tomato,Olive Oil,Feta;9.0;30.0
+Boiled Eggs & Toast;300;Eggs,Bread,Butter;12.0;14.0
+Fruit Smoothie;180;Banana,Milk,Peanut Butter,Chia Seeds;7.5;8.0
+Rice with Lentils;400;Rice,Lentils,Spices,Onions;6.0;15.0
+Avocado Toast;270;Avocado,Bread,Egg,Chili Flakes;10.0;9.5
