@@ -1,67 +1,67 @@
 package FrontEnd;
+
+import BackEnd.MealRecommendationSystem;
+
 import java.util.Scanner;
 
-public class HomePageUI {
+public class MealSystemUI {
     private final Scanner scanner;
 
-    public HomePageUI() {
+    public MealSystemUI() {
         scanner = new Scanner(System.in);
     }
 
+    public void suggestDailyMeals() {
+        System.out.println("\n📥 Loading your personalized meal suggestions...");
+        MealRecommendationSystem recommender = new MealRecommendationSystem();
+        recommender.suggestDailyMeals();
+    }
     public void showDashboard() {
         while (true) {
-            System.out.println("\n=== 🍽️ Welcome to the Meal System Dashboard ===");
+            System.out.println("\n=== 🍽️ Meal System Dashboard ===");
             System.out.println("1. 🍲 Meal Recommendation System");
-            System.out.println("2. 🧺 Profile");
+            System.out.println("2. 🧺 Ingredient-Based Filtering");
             System.out.println("3. 🥗 Nutrition Tracker");
             System.out.println("4. 📅 Weekly Meal Planner");
-            System.out.println("5. 🧠 Weight Loss Prediction");
+            System.out.println("5. 🧠 AI-Inspired Weight Prediction Module");
             System.out.println("6. 🌿 Daily Health Tips & Fun Facts");
             System.out.println("7. 🔒 Logout");
             System.out.print("Choose an option: ");
 
             int choice = getChoice();
 
-
-
             switch (choice) {
                 case 1:
-                    System.out.println("Launching Meal Recommendation System...");
-                    MealSystemUI meal = new MealSystemUI();
-                    try {
-                        meal.suggestDailyMeals();
-                    } catch (Exception e) {
-                        System.err.println("An error occurred while suggesting meals: " + e.getMessage());
-                    }
-
+                    handleMealRecommendation();
                     break;
                 case 2:
-                    System.out.println("Launching Profile..");
-                    // ingredientFilter();
+                    System.out.println("Feature coming soon: Ingredient-Based Filtering...");
                     break;
                 case 3:
-                    System.out.println("Opening Nutrition Tracker...");
-                    // nutritionTracker();
+                    System.out.println("Feature coming soon: Nutrition Tracker...");
                     break;
                 case 4:
-                    System.out.println("Generating Weekly Meal Planner...");
-                    // weeklyPlanner();
+                    System.out.println("Feature coming soon: Weekly Meal Planner...");
                     break;
                 case 5:
-                    System.out.println("Launching AI Weight Prediction Module...");
-                    // weightPrediction();
+                    System.out.println("Feature coming soon: AI Weight Prediction...");
                     break;
                 case 6:
-                    System.out.println("Here's your daily health tip...");
-                    // dailyTip();
+                    System.out.println("Feature coming soon: Daily Health Tips...");
                     break;
                 case 7:
                     System.out.println("Logging out...");
-                    return; // returns control back to AuthenticationUI
+                    return;
                 default:
                     System.out.println("Invalid option. Please choose again.");
             }
         }
+    }
+
+    private void handleMealRecommendation() {
+        System.out.println("\n📥 Loading your personalized meal suggestions...");
+        MealRecommendationSystem recommender = new MealRecommendationSystem();
+        recommender.suggestDailyMeals();
     }
 
     private int getChoice() {
