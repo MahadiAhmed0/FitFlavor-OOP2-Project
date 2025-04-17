@@ -1,6 +1,7 @@
 package FrontEnd;
 
 import BackEnd.MealRecommendationSystem;
+import BackEnd.MealStorageManager;
 
 import java.util.Scanner;
 
@@ -10,58 +11,37 @@ public class MealSystemUI {
     public MealSystemUI() {
         scanner = new Scanner(System.in);
     }
+    private void mealFileActions() {
+        MealStorageManager storage = new MealStorageManager();
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("\nManage Meal Files:");
+        System.out.println("1. Modify Breakfast");
+        System.out.println("2. Modify Lunch");
+        System.out.println("3. Modify Dinner");
+        System.out.println("4. Modify Noon Snack");
+        System.out.println("5. Modify Evening Snack");
+        System.out.println("6. Regenerate All Meals");
+        System.out.print("Choose an option: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        switch (choice) {
+            case 1 -> storage.modifyMeal("breakfast");
+            case 2 -> storage.modifyMeal("lunch");
+            case 3 -> storage.modifyMeal("dinner");
+            case 4 -> storage.modifyMeal("noon_snack");
+            case 5 -> storage.modifyMeal("evening_snack");
+            case 6 -> new MealRecommendationSystem().suggestDailyMeals();
+            default -> System.out.println("Invalid option.");
+        }
+    }
 
     public void suggestDailyMeals() {
         System.out.println("\n📥 Loading your personalized meal suggestions...");
         MealRecommendationSystem recommender = new MealRecommendationSystem();
         recommender.suggestDailyMeals();
-    }
-    public void showDashboard() {
-        while (true) {
-            System.out.println("\n=== 🍽️ Meal System Dashboard ===");
-            System.out.println("1. 🍲 Meal Recommendation System");
-            System.out.println("2. 🧺 Ingredient-Based Filtering");
-            System.out.println("3. 🥗 Nutrition Tracker");
-            System.out.println("4. 📅 Weekly Meal Planner");
-            System.out.println("5. 🧠 AI-Inspired Weight Prediction Module");
-            System.out.println("6. 🌿 Daily Health Tips & Fun Facts");
-            System.out.println("7. 🔒 Logout");
-            System.out.print("Choose an option: ");
-
-            int choice = getChoice();
-
-            switch (choice) {
-                case 1:
-                    handleMealRecommendation();
-                    break;
-                case 2:
-                    System.out.println("Feature coming soon: Ingredient-Based Filtering...");
-                    break;
-                case 3:
-                    System.out.println("Feature coming soon: Nutrition Tracker...");
-                    break;
-                case 4:
-                    System.out.println("Feature coming soon: Weekly Meal Planner...");
-                    break;
-                case 5:
-                    System.out.println("Feature coming soon: AI Weight Prediction...");
-                    break;
-                case 6:
-                    System.out.println("Feature coming soon: Daily Health Tips...");
-                    break;
-                case 7:
-                    System.out.println("Logging out...");
-                    return;
-                default:
-                    System.out.println("Invalid option. Please choose again.");
-            }
-        }
-    }
-
-    private void handleMealRecommendation() {
-        System.out.println("\n📥 Loading your personalized meal suggestions...");
-        MealRecommendationSystem recommender = new MealRecommendationSystem();
-        recommender.suggestDailyMeals();
+        mealFileActions();
     }
 
     private int getChoice() {
