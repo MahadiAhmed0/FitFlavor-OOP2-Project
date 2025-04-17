@@ -4,8 +4,8 @@ import java.util.Scanner;
 public class HomePageUI {
     private final Scanner scanner;
 
-    public HomePageUI() {
-        scanner = new Scanner(System.in);
+    public HomePageUI(Scanner scanner) {
+        this.scanner = new Scanner(System.in);
     }
 
     public void showDashboard() {
@@ -27,14 +27,14 @@ public class HomePageUI {
             switch (choice) {
                 case 1:
                     System.out.println("Launching Meal Recommendation System...");
-                    MealSystemUI meal = new MealSystemUI();
+                    MealSystemUI meal = new MealSystemUI(scanner);
                     try {
-                        meal.suggestDailyMeals();
+                        meal.start(); // Updated to call appropriate method
                     } catch (Exception e) {
-                        System.err.println("An error occurred while suggesting meals: " + e.getMessage());
+                        System.err.println("An error occurred while interacting with the Meal Recommendation System: " + e.getMessage());
                     }
-
                     break;
+
                 case 2:
                     System.out.println("Launching Profile..");
                     // ingredientFilter();

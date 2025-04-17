@@ -1,103 +1,118 @@
 package BackEnd;
 
-import java.io.*;
+import java.sql.*;
 import java.util.*;
 
 public class MealStorageManager {
 
-    private static final String MEAL_FOLDER = "saved_meals";
-
-    public MealStorageManager() {
-        File folder = new File(MEAL_FOLDER);
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-    }
-
-    public void saveMealsToFile(String mealType, List<Meal> meals) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(MEAL_FOLDER + "/" + mealType + ".txt"))) {
-            for (Meal meal : meals) {
-                writer.write(meal.toFileString());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.err.println("Error saving " + mealType + ": " + e.getMessage());
-        }
-    }
-
-    public List<Meal> loadMealsFromFile(String mealType) {
-        List<Meal> meals = new ArrayList<>();
-        File file = new File(MEAL_FOLDER + "/" + mealType + ".txt");
-        if (!file.exists()) return meals;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                meals.add(Meal.parseFromFileString(line));
-            }
-        } catch (IOException e) {
-            System.err.println("Error loading " + mealType + ": " + e.getMessage());
-        }
-
-        return meals;
-    }
-
-    public void modifyMeal(String mealType) {
-        Scanner scanner = new Scanner(System.in);
-        List<Meal> meals = loadMealsFromFile(mealType);
-
-        if (meals.isEmpty()) {
-            System.out.println("No meals found for " + mealType);
-            return;
-        }
-
-        System.out.println("\n📄 Current meals in " + mealType + ":");
-        for (int i = 0; i < meals.size(); i++) {
-            System.out.println((i + 1) + ". " + meals.get(i).getName());
-        }
-
-        System.out.println("\nChoose an action:");
-        System.out.println("1. Remove a meal");
-        System.out.println("2. Add a new meal");
-        System.out.println("3. Regenerate meals");
-        System.out.println("4. Cancel");
-        System.out.print("Choice: ");
-        int choice = scanner.nextInt();
-        scanner.nextLine();
-
-        switch (choice) {
-            case 1:
-                System.out.print("Enter meal number to remove: ");
-                int index = scanner.nextInt() - 1;
-                if (index >= 0 && index < meals.size()) {
-                    meals.remove(index);
-                    saveMealsToFile(mealType, meals);
-                    System.out.println("Meal removed and file updated.");
-                } else {
-                    System.out.println("Invalid index.");
+    public void saveMealsToDatabase(String mealType, List<Meal> meals) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+            String insertQuery = "INSERT INTO DailyMeals (meal_type, meal_id, date) VALUES (?, ?, CURDATE())";
+            try (PreparedStatement ps = conn.prepareStatement(insertQuery)) {
+                for (Meal meal : meals) {
+                    int mealId = getMealIdByName(conn, meal.getName());
+                    if (mealId != -1) {
+                        ps.setString(1, mealType);
+                        ps.setInt(2, mealId);
+                        ps.addBatch();
+                    }
                 }
-                break;
-            case 2:
-                System.out.print("Enter new meal line (e.g. Name;Calories;Ingredients;Fats;Proteins): ");
-                String newLine = scanner.nextLine();
-                try {
-                    meals.add(Meal.parseFromFileString(newLine));
-                    saveMealsToFile(mealType, meals);
-                    System.out.println("Meal added and file updated.");
-                } catch (Exception e) {
-                    System.out.println("Invalid format.");
-                }
-                break;
-            case 3:
-                MealLoader loader = new MealLoader();
-                List<Meal> allMeals = loader.loadMeals();
-                Collections.shuffle(allMeals);
-                List<Meal> newMeals = allMeals.subList(0, Math.min(3, allMeals.size()));
-                saveMealsToFile(mealType, newMeals);
-                System.out.println("Meals regenerated and file updated.");
-                break;
-            default:
-                System.out.println("Cancelled.");
+                ps.executeBatch();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error saving meals to database: " + e.getMessage());
         }
     }
+
+    private int getMealIdByName(Connection conn, String name) throws SQLException {
+        String query = "SELECT meal_id FROM Meals WHERE name = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("meal_id");
+                }
+            }
+        }
+        return -1;
+    }
+
+    public List<Meal> viewMealsByType(String mealType) {
+        List<Meal> meals = new ArrayList<>(); // Initialize the list, so it is never null
+
+        String query = "SELECT m.* FROM DailyMeals dm " +
+                "JOIN Meals m ON dm.meal_id = m.meal_id " +
+                "WHERE dm.meal_type = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, mealType); // Bind the meal type to the query
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    // Parse the database row into a Meal object
+                    Meal meal = Meal.fromResultSet(rs);
+                    meals.add(meal); // Add each meal to the list
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("⚠️ Failed to retrieve meals for type '" + mealType + "': " + e.getMessage());
+            // Return an empty list in case of an error
+        }
+
+        return meals; // Return the list (either filled with meals or empty)
+    }
+
+    public void updateMealInDatabase(Meal meal) {
+        String updateMealQuery = "UPDATE Meals SET name = ?, calories = ?, fats = ?, proteins = ? WHERE meal_id = ?";
+        String deleteIngredientsQuery = "DELETE FROM MealIngredients WHERE meal_id = ?";
+        String insertIngredientsQuery = "INSERT INTO MealIngredients (meal_id, ingredient_id) VALUES (?, ?)";
+
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+            // Update the meal's main attributes
+            try (PreparedStatement updateMealStmt = conn.prepareStatement(updateMealQuery)) {
+                updateMealStmt.setString(1, meal.getName());
+                updateMealStmt.setInt(2, meal.getCalories());
+                updateMealStmt.setDouble(3, meal.getFats());
+                updateMealStmt.setDouble(4, meal.getProteins());
+                updateMealStmt.setInt(5, meal.getMealId());
+                updateMealStmt.executeUpdate();
+            }
+
+            // Delete existing ingredients
+            try (PreparedStatement deleteIngredientsStmt = conn.prepareStatement(deleteIngredientsQuery)) {
+                deleteIngredientsStmt.setInt(1, meal.getMealId());
+                deleteIngredientsStmt.executeUpdate();
+            }
+
+            // Insert updated ingredients
+            try (PreparedStatement insertIngredientsStmt = conn.prepareStatement(insertIngredientsQuery)) {
+                for (String ingredient : meal.getIngredients(conn)) {
+                    int ingredientId = getIngredientId(conn, ingredient);
+                    if (ingredientId != -1) {
+                        insertIngredientsStmt.setInt(1, meal.getMealId());
+                        insertIngredientsStmt.setInt(2, ingredientId);
+                        insertIngredientsStmt.addBatch();
+                    }
+                }
+                insertIngredientsStmt.executeBatch();
+            }
+
+        } catch (SQLException e) {
+            System.out.println("⚠️ Error updating meal in database: " + e.getMessage());
+        }
+    }
+
+    // Helper method to get the ingredient ID from the database
+    private int getIngredientId(Connection conn, String ingredientName) throws SQLException {
+        String query = "SELECT ingredient_id FROM Ingredients WHERE name = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, ingredientName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("ingredient_id");
+            }
+        }
+        return -1; // If ingredient not found
+    }
+
 }

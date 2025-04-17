@@ -22,7 +22,8 @@ public class AuthenticationUI {
                     break;
                 case 2:
                     manager.loginAccount();
-                    new HomePageUI().showDashboard();
+                    HomePageUI home = new HomePageUI(scanner);
+                    home.showDashboard();
                     break;
                 case 3:
                     System.out.println("Exiting...");

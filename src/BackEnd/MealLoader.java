@@ -1,54 +1,56 @@
 package BackEnd;
 
-import java.io.*;
+import java.sql.*;
 import java.util.*;
 
 public class MealLoader {
-    private static final String MEAL_FILE = "meals.txt";
-
     public List<Meal> loadMeals() {
         List<Meal> meals = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(MEAL_FILE))) {
-            String line;
+        String mealQuery = "SELECT * FROM Meals";
+        String ingredientQuery = "SELECT i.name FROM Ingredients i " +
+                "JOIN MealIngredients mi ON i.ingredient_id = mi.ingredient_id " +
+                "WHERE mi.meal_id = ?";
 
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(";");
-                if (parts.length != 6) continue; // name;calories;ingredients;fats;proteins;type
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             Statement mealStmt = conn.createStatement();
+             ResultSet mealRs = mealStmt.executeQuery(mealQuery)) {
 
-                String name = parts[0].trim();
-                int calories = Integer.parseInt(parts[1].trim());
-                List<String> ingredients = Arrays.asList(parts[2].trim().split(","));
-                double fats = Double.parseDouble(parts[3].trim());
-                double proteins = Double.parseDouble(parts[4].trim());
-                String type = parts[5].trim().toLowerCase();
+            while (mealRs.next()) {
+                int mealId = mealRs.getInt("meal_id");
+                String name = mealRs.getString("name");
+                int calories = mealRs.getInt("calories");
+                float fats = mealRs.getFloat("fats");
+                float proteins = mealRs.getFloat("proteins");
 
-                Meal meal;
-                switch (type) {
-                    case "breakfast":
-                        meal = new Breakfast(name, calories, ingredients, fats, proteins);
-                        break;
-                    case "lunch":
-                        meal = new Lunch(name, calories, ingredients, fats, proteins);
-                        break;
-                    case "dinner":
-                        meal = new Dinner(name, calories, ingredients, fats, proteins);
-                        break;
-                    case "snack":
-                        meal = new Snack(name, calories, ingredients, fats, proteins);
-                        break;
-                    default:
-                        meal = new Meal(name, calories, ingredients, fats, proteins);
-                        break;
-                }
+                // Fetch the ingredients using the mealId
+                List<String> ingredients = getIngredientsForMeal(conn, mealId, ingredientQuery);
 
+                // Create the Meal object based on the fetched data
+                Meal meal = new Meal(mealId, name, calories, fats, proteins);
                 meals.add(meal);
             }
 
-        } catch (IOException e) {
+        } catch (SQLException e) {
             System.out.println("⚠️ Failed to load meals: " + e.getMessage());
         }
 
         return meals;
+    }
+
+    // Helper method to fetch ingredients for a specific meal
+    private List<String> getIngredientsForMeal(Connection conn, int mealId, String ingredientQuery) {
+        List<String> ingredients = new ArrayList<>();
+        try (PreparedStatement ingStmt = conn.prepareStatement(ingredientQuery)) {
+            ingStmt.setInt(1, mealId);
+            ResultSet ingRs = ingStmt.executeQuery();
+
+            while (ingRs.next()) {
+                ingredients.add(ingRs.getString("name"));
+            }
+        } catch (SQLException e) {
+            System.out.println("⚠️ Error fetching ingredients for mealId " + mealId + ": " + e.getMessage());
+        }
+        return ingredients;
     }
 }
