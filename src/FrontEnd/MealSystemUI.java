@@ -58,8 +58,26 @@ public class MealSystemUI {
 
     private void viewAndEditMealsActions() {
         try {
-            System.out.println("\n---- View and Edit Meals ----");
-            editDailyMeals();
+            boolean isRunning = true;
+            while (isRunning) {
+                System.out.println("\n---- View and Edit Meals ----");
+                System.out.println("1. Edit Daily Meals");
+                System.out.println("2. Back to Main Menu");
+                System.out.print("Enter your choice: ");
+                int choice = getChoice();
+
+                switch (choice) {
+                    case 1:
+                        editDailyMeals();
+                        break;
+                    case 2:
+                        System.out.println("\nReturning to the Main Menu...");
+                        isRunning = false;
+                        break;
+                    default:
+                        System.out.println("⚠️ Invalid choice! Please try again.");
+                }
+            }
         } catch (Exception e) {
             System.err.println("⚠️ Failed to view or edit meals: " + e.getMessage());
         }
@@ -83,7 +101,6 @@ public class MealSystemUI {
             String selectedType = mealTypes[choice - 1];
             List<Meal> meals = storageManager.viewMealsByType(selectedType);
 
-            // Safeguard: Check for null or empty list
             if (meals == null || meals.isEmpty()) {
                 System.out.println("⚠️ No meals found for " + selectedType + "!");
                 return;
