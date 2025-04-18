@@ -23,7 +23,11 @@ public class NutritionStatsUI {
                     dailyUI.showTodayStats();
                     CalorieBarChartTerminal.display();
                 }
-                case "2" -> weeklyUI.showWeeklyStats();
+                case "2" -> {
+                    weeklyUI.showWeeklyStats();
+                    CalorieBarChartTerminal.displayWeeklyCaloriesFromWeeklyMeals();
+                    CalorieBarChartTerminal.displayTodayFromWeeklyMeals();
+                }
                 case "3" -> {
                     System.out.println("🔙 Returning to previous menu...");
                     return;
