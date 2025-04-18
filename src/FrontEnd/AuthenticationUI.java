@@ -45,11 +45,11 @@ public class AuthenticationUI {
     private int getUserChoice() {
         while (!scanner.hasNextInt()) {
             System.out.println("Invalid input. Please enter a number.");
-            scanner.next(); // discard invalid input
+            scanner.next(); 
             showMenu();
         }
         int choice = scanner.nextInt();
-        scanner.nextLine(); // clear buffer
+        scanner.nextLine(); 
         return choice;
     }
 }

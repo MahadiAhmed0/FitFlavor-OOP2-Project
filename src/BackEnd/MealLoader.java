@@ -23,10 +23,10 @@ public class MealLoader {
                 float fats = mealRs.getFloat("fats");
                 float proteins = mealRs.getFloat("proteins");
 
-                // Fetch the ingredients using the mealId
+                
                 List<String> ingredients = getIngredientsForMeal(conn, mealId, ingredientQuery);
 
-                // Create the Meal object based on the fetched data
+                
                 Meal meal = new Meal(mealId, name, calories, fats, proteins);
                 meals.add(meal);
             }
@@ -38,7 +38,7 @@ public class MealLoader {
         return meals;
     }
 
-    // Helper method to fetch ingredients for a specific meal
+    
     private List<String> getIngredientsForMeal(Connection conn, int mealId, String ingredientQuery) {
         List<String> ingredients = new ArrayList<>();
         try (PreparedStatement ingStmt = conn.prepareStatement(ingredientQuery)) {

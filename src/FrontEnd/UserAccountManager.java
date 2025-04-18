@@ -31,17 +31,14 @@ public class UserAccountManager {
             return;
         }
 
-        System.out.print("Enter age: ");
-        int age = scanner.nextInt();
-
-        System.out.print("Enter weight: ");
-        double weight = scanner.nextDouble();
-        scanner.nextLine(); // clear buffer
+        int age = promptInt("Enter age: ");
+        double weight = promptDouble("Enter weight: ");
 
         User newUser = new User(username, password, age, weight);
         authenticator.addUser(newUser);
         System.out.println("Account created successfully.");
     }
+
 
     public void loginAccount() {
         System.out.print("Enter username: ");
@@ -56,5 +53,28 @@ public class UserAccountManager {
             System.out.println("Invalid credentials.");
         }
     }
+
+    private int promptInt(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                return Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid number. Please enter a valid integer.");
+            }
+        }
+    }
+
+    private double promptDouble(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                return Double.parseDouble(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid number. Please enter a valid number.");
+            }
+        }
+    }
+
 
 }
