@@ -47,8 +47,9 @@ public class HomePageUI {
                     tracker.showStatsMenu();
                     break;
                 case 4:
-                    System.out.println("Launching AI Weight Prediction Module...");
-                    
+                    System.out.println("Launching Weight Prediction Module...");
+                    WeightLossPredictionUI predictionUI = new WeightLossPredictionUI(scanner, username);
+                    predictionUI.showWeightLossPredictionPage();
                     break;
                 case 5:
                     System.out.println("Here's your daily health tip...");
