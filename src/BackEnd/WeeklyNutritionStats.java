@@ -13,17 +13,18 @@ public class WeeklyNutritionStats {
     public Map<String, List<NutritionData>> getWeekNutritionBreakdown() {
         Map<String, List<NutritionData>> map = new LinkedHashMap<>();
         String sql = """
-            SELECT day, meal_type, calories, fats, proteins
+            SELECT day_of_week, meal_type, calories, fats, proteins
             FROM WeeklyMeals wm
             JOIN Meals m ON wm.meal_id = m.meal_id
-            ORDER BY FIELD(day, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')
+            ORDER BY FIELD(day_of_week, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')
         """;
+
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                String day = rs.getString("day");
+                String day = rs.getString("day_of_week");
                 String type = rs.getString("meal_type");
                 int cal = rs.getInt("calories");
                 float fats = rs.getFloat("fats");

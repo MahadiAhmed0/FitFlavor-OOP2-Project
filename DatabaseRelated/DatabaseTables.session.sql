@@ -24,3 +24,12 @@ CREATE TABLE DailyMeals (
      date DATE,
      FOREIGN KEY (meal_id) REFERENCES Meals(meal_id)
  );
+
+ CREATE TABLE WeeklyMeals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    meal_type VARCHAR(50),
+    meal_id INT,
+    week_start_date DATE,
+    day_of_week VARCHAR(10),
+    FOREIGN KEY (meal_id) REFERENCES Meals(meal_id)
+);

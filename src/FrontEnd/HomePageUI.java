@@ -41,9 +41,8 @@ public class HomePageUI {
                     break;
                 case 3:
                     System.out.println("Opening Nutrition Tracker...");
-                    CalorieBarChartTerminal.display();
                     NutritionStatsUI tracker = new NutritionStatsUI();
-                    tracker.showTodayStats();
+                    tracker.showStatsMenu();
                     break;
                 case 4:
                     System.out.println("Generating Weekly Meal Planner...");

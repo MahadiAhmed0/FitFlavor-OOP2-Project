@@ -1,40 +1,35 @@
 package FrontEnd;
 
-import BackEnd.DailyNutritionStats;
-import BackEnd.NutritionData;
-
-import java.util.List;
 import java.util.Scanner;
 
 public class NutritionStatsUI {
 
+    private final Scanner scanner = new Scanner(System.in);
+    private final DailyNutritionStatsUI dailyUI = new DailyNutritionStatsUI();
+    private final WeeklyNutritionStatsUI weeklyUI = new WeeklyNutritionStatsUI();
 
-    public void showTodayStats() {
-        try {
-            DailyNutritionStats stats = new DailyNutritionStats();
-            List<NutritionData> meals = stats.getTodayNutritionBreakdown();
-            NutritionData total = stats.getTotalDailyStats();
+    public void showStatsMenu() {
+        while (true) {
+            System.out.println("\n📈 Nutrition Stats Menu");
+            System.out.println("1. 📅 View Daily Nutrition Stats");
+            System.out.println("2. 📆 View Weekly Nutrition Stats");
+            System.out.println("3. 🔙 Back");
+            System.out.print("Choose an option: ");
 
-            System.out.println("\n📊 Nutrition vs Meal Time Graph:");
-            for (NutritionData data : meals) {
-                System.out.printf("\n🍽️ %s:\n", data.getMealType());
-                printBar("Calories", data.getCalories(), 100);
-                printBar("Fats", (int) data.getFats(), 10);
-                printBar("Proteins", (int) data.getProteins(), 10);
+            String choice = scanner.nextLine();
+
+            switch (choice) {
+                case "1" -> {
+                    dailyUI.showTodayStats();
+                    CalorieBarChartTerminal.display();
+                }
+                case "2" -> weeklyUI.showWeeklyStats();
+                case "3" -> {
+                    System.out.println("🔙 Returning to previous menu...");
+                    return;
+                }
+                default -> System.out.println("❌ Invalid input. Try again.");
             }
-
-            System.out.println("\n🧾 Daily Total:");
-            System.out.printf("Calories: %d kcal\n", total.getCalories());
-            System.out.printf("Fats: %.1f g\n", total.getFats());
-            System.out.printf("Proteins: %.1f g\n", total.getProteins());
-
-        } catch (Exception e) {
-            System.err.println("⚠️ Failed to load nutrition stats: " + e.getMessage());
         }
-    }
-
-    private void printBar(String label, int value, int scale) {
-        int length = value / scale;
-        System.out.printf("%-10s: %-3d | %s\n", label, value, "█".repeat(Math.max(0, length)));
     }
 }
