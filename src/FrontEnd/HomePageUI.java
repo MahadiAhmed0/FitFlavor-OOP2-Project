@@ -1,4 +1,6 @@
 package FrontEnd;
+import BackEnd.HealthTipManager;
+
 import java.util.Scanner;
 
 public class HomePageUI {
@@ -53,6 +55,9 @@ public class HomePageUI {
                     break;
                 case 5:
                     System.out.println("Here's your daily health tip...");
+                    HealthTipManager healthTipManager = new HealthTipManager();
+                    String healthTip = healthTipManager.getRandomHealthTip();
+                    System.out.println("💡 " + healthTip);
                     
                     break;
                 case 6:
