@@ -7,6 +7,7 @@ import BackEnd.DatabaseConnection;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class MealSystemUI {
@@ -23,10 +24,10 @@ public class MealSystemUI {
     public void start() {
         System.out.println("🍴 Welcome to the Meal System! 🍴");
         while (true) {
-            System.out.println("\n---- Main Menu ----");
             System.out.println("1. Suggest Daily Meals");
             System.out.println("2. View and Edit Meals");
-            System.out.println("3. Exit");
+            System.out.println("3. View Weekly Meals"); 
+            System.out.println("4. Exit");
 
             System.out.print("Enter your choice: ");
             int choice = getChoice();
@@ -36,6 +37,10 @@ public class MealSystemUI {
                     case 1 -> suggestionActions();
                     case 2 -> viewAndEditMealsActions();
                     case 3 -> {
+                        recommendationSystem.suggestWeeklyMeals();
+                        viewWeeklyMeals() ;
+                    }
+                    case 4 -> {
                         System.out.println("👋 Exiting Meal System. Goodbye!");
                         return;
                     }
@@ -46,6 +51,33 @@ public class MealSystemUI {
             }
         }
     }
+
+
+
+    private void viewWeeklyMeals() {
+        try {
+            System.out.println("\n📅 Weekly Meal Plan");
+
+            Map<String, Map<String, List<Meal>>> weeklyMeals = storageManager.getWeeklyMeals(); 
+
+            for (String day : weeklyMeals.keySet()) {
+                System.out.println("\n==== " + day.toUpperCase() + " ====");
+                Map<String, List<Meal>> dailyMeals = weeklyMeals.get(day);
+                for (String type : dailyMeals.keySet()) {
+                    System.out.println("\n🍴 " + type.toUpperCase());
+                    for (Meal meal : dailyMeals.get(type)) {
+                        System.out.println(meal);
+                    }
+                }
+            }
+
+            System.out.println("\nPress Enter to go back to the previous menu...");
+            scanner.nextLine();
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to display weekly meals: " + e.getMessage());
+        }
+    }
+
 
     private void suggestionActions() {
         try {
@@ -163,7 +195,7 @@ public class MealSystemUI {
     private void editName(Meal meal) {
         try {
             System.out.print("Enter new name: ");
-            scanner.nextLine(); // Consume leftover newline
+            scanner.nextLine(); 
             String newName = scanner.nextLine();
             meal.setName(newName);
             System.out.println("✅ Name updated to " + newName);
@@ -212,7 +244,7 @@ public class MealSystemUI {
             System.out.println("Current Ingredients: " + currentIngredients);
 
             System.out.print("\nEnter new ingredients (comma-separated): ");
-            scanner.nextLine(); // Consume leftover newline
+            scanner.nextLine(); 
             String input = scanner.nextLine();
             List<String> newIngredients = List.of(input.split("\\s*,\\s*"));
 
@@ -229,7 +261,7 @@ public class MealSystemUI {
             scanner.next();
         }
         int choice = scanner.nextInt();
-        scanner.nextLine(); // clear buffer
+        scanner.nextLine(); 
         return choice;
     }
 
