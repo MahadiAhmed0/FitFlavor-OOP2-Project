@@ -3,8 +3,7 @@ package FrontEnd;
 import BackEnd.WeeklyNutritionStats;
 import BackEnd.NutritionData;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class WeeklyNutritionStatsUI {
 
@@ -29,23 +28,45 @@ public class WeeklyNutritionStatsUI {
         }
     }
 
+    private static final int CALORIE_UNIT = 50;
+
     private void printMealStats(List<NutritionData> meals, NutritionData total) {
-        System.out.println("\n📊 Nutrition vs Meal Time Graph:");
+        // Prepare map: MealType -> Calories
+        Map<String, Integer> caloriesMap = new LinkedHashMap<>();
+        List<String> mealOrder = Arrays.asList("breakfast", "lunch", "snack", "dinner");
+        for (String meal : mealOrder) caloriesMap.put(meal, 0);
+
         for (NutritionData data : meals) {
-            System.out.printf("\n🍽️ %s:\n", data.getMealType());
-            printBar("Calories", data.getCalories(), 100);
-            printBar("Fats", (int) data.getFats(), 10);
-            printBar("Proteins", (int) data.getProteins(), 10);
+            caloriesMap.put(data.getMealType(), data.getCalories());
         }
 
+        // Determine max bar length
+        int maxCalories = Collections.max(caloriesMap.values());
+        int maxUnits = Math.max(1, maxCalories / CALORIE_UNIT + 1);
+
+        // Print horizontal bar chart
+        System.out.println("\n📊 CALORIE VS MEAL BAR CHART (Horizontal)");
+        System.out.println("=".repeat(50));
+
+        for (String meal : mealOrder) {
+            int value = caloriesMap.get(meal);
+            int units = value / CALORIE_UNIT;
+            System.out.printf("%-10s | %-4d kcal | %s\n", capitalize(meal), value, "█".repeat(units));
+        }
+
+        // X-axis scale
+        System.out.println("=".repeat(50));
+        System.out.println("Scale: 1 unit = " + CALORIE_UNIT + " kcal");
+
+        // Daily total
         System.out.println("\n🧾 Daily Total:");
         System.out.printf("Calories: %d kcal\n", total.getCalories());
         System.out.printf("Fats: %.1f g\n", total.getFats());
         System.out.printf("Proteins: %.1f g\n", total.getProteins());
     }
 
-    private void printBar(String label, int value, int scale) {
-        int length = value / scale;
-        System.out.printf("%-10s: %-3d | %s\n", label, value, "█".repeat(Math.max(0, length)));
+    private String capitalize(String s) {
+        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
+
 }
