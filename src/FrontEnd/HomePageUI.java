@@ -3,9 +3,10 @@ import java.util.Scanner;
 
 public class HomePageUI {
     private final Scanner scanner;
-
-    public HomePageUI(Scanner scanner) {
+    private final String username;
+    public HomePageUI(Scanner scanner, String username) {
         this.scanner = new Scanner(System.in);
+        this.username = username;
     }
 
     public void showDashboard() {
@@ -14,10 +15,9 @@ public class HomePageUI {
             System.out.println("1. 🍲 Meal Recommendation System");
             System.out.println("2. 🧺 Profile");
             System.out.println("3. 🥗 Nutrition Tracker");
-            System.out.println("4. 📅 Weekly Meal Planner");
-            System.out.println("5. 🧠 Weight Loss Prediction");
-            System.out.println("6. 🌿 Daily Health Tips & Fun Facts");
-            System.out.println("7. 🔒 Logout");
+            System.out.println("4. 🧠 Weight Loss Prediction");
+            System.out.println("5. 🌿 Daily Health Tips & Fun Facts");
+            System.out.println("6. 🔒 Logout");
             System.out.print("Choose an option: ");
 
             int choice = getChoice();
@@ -29,7 +29,7 @@ public class HomePageUI {
                     System.out.println("Launching Meal Recommendation System...");
                     MealSystemUI meal = new MealSystemUI(scanner);
                     try {
-                        meal.start(); // Updated to call appropriate method
+                        meal.start(); 
                     } catch (Exception e) {
                         System.err.println("An error occurred while interacting with the Meal Recommendation System: " + e.getMessage());
                     }
@@ -37,7 +37,9 @@ public class HomePageUI {
 
                 case 2:
                     System.out.println("Launching Profile..");
-                    // ingredientFilter();
+                    ProfileUI profileUI = new ProfileUI(scanner, username);
+                    profileUI.showProfileMenu();
+
                     break;
                 case 3:
                     System.out.println("Opening Nutrition Tracker...");
@@ -45,20 +47,16 @@ public class HomePageUI {
                     tracker.showStatsMenu();
                     break;
                 case 4:
-                    System.out.println("Generating Weekly Meal Planner...");
-                    // weeklyPlanner();
+                    System.out.println("Launching AI Weight Prediction Module...");
+                    
                     break;
                 case 5:
-                    System.out.println("Launching AI Weight Prediction Module...");
-                    // weightPrediction();
+                    System.out.println("Here's your daily health tip...");
+                    
                     break;
                 case 6:
-                    System.out.println("Here's your daily health tip...");
-                    // dailyTip();
-                    break;
-                case 7:
                     System.out.println("Logging out...");
-                    return; // returns control back to AuthenticationUI
+                    return; 
                 default:
                     System.out.println("Invalid option. Please choose again.");
             }
@@ -71,7 +69,7 @@ public class HomePageUI {
             scanner.next();
         }
         int choice = scanner.nextInt();
-        scanner.nextLine(); // clear buffer
+        scanner.nextLine(); 
         return choice;
     }
 }

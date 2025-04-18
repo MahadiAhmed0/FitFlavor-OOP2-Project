@@ -21,8 +21,8 @@ public class AuthenticationUI {
                     manager.createAccount();
                     break;
                 case 2:
-                    manager.loginAccount();
-                    HomePageUI home = new HomePageUI(scanner);
+                    String username = manager.loginAccount();
+                    HomePageUI home = new HomePageUI(scanner, username);
                     home.showDashboard();
                     break;
                 case 3:

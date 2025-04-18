@@ -40,7 +40,7 @@ public class UserAccountManager {
     }
 
 
-    public void loginAccount() {
+    public String loginAccount() {
         System.out.print("Enter username: ");
         String username = scanner.nextLine();
 
@@ -52,6 +52,7 @@ public class UserAccountManager {
         } else {
             System.out.println("Invalid credentials.");
         }
+        return username;
     }
 
     private int promptInt(String prompt) {
