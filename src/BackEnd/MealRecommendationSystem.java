@@ -1,6 +1,9 @@
 package BackEnd;
 
+
 import java.sql.*;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.*;
 
 public class MealRecommendationSystem {
@@ -15,28 +18,42 @@ public class MealRecommendationSystem {
     }
 
     public void suggestDailyMeals() {
-        if (areDailyMealsEmpty()) { // Check if the DailyMeals table is empty
-            System.out.println("🍽️ Daily meals table is empty. Generating new meals...");
+        if (isNewDateOrEmpty()) {
+            System.out.println("📅 New day detected or no meals found. Generating meals for today...");
+            clearOldDailyMeals();
             generateAndSaveDailyMeals();
         } else {
-            System.out.println("🍽️ Daily meals already exist in the database. Fetching meals...");
+            System.out.println("🍽️ Daily meals already exist for today. Fetching meals...");
             fetchAndDisplayDailyMeals();
         }
     }
 
-    private boolean areDailyMealsEmpty() {
-        String query = "SELECT COUNT(*) AS meal_count FROM DailyMeals";
+    private boolean isNewDateOrEmpty() {
+        String query = "SELECT COUNT(*) AS meal_count FROM DailyMeals WHERE date = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setDate(1, Date.valueOf(LocalDate.now()));
+            ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                return rs.getInt("meal_count") == 0; // Check if there are no rows
+                return rs.getInt("meal_count") == 0;
             }
         } catch (SQLException e) {
-            System.out.println("⚠️ Error checking DailyMeals table: " + e.getMessage());
+            System.out.println("⚠️ Error checking DailyMeals for today's date: " + e.getMessage());
         }
         return true; // Assume empty if error occurs
+    }
+
+    private void clearOldDailyMeals() {
+        String query = "DELETE FROM DailyMeals";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(query);
+            System.out.println("🧹 Old daily meals cleared.");
+        } catch (SQLException e) {
+            System.out.println("⚠️ Error clearing DailyMeals: " + e.getMessage());
+        }
     }
 
     private void generateAndSaveDailyMeals() {
@@ -47,29 +64,31 @@ public class MealRecommendationSystem {
         for (String type : types) {
             List<Meal> selected = new ArrayList<>();
             while (selected.size() < 1) {
-                Meal meal = allMeals.get(random.nextInt(allMeals.size())); // Random meal selection
-                if (!selected.contains(meal)) selected.add(meal); // Ensure no duplicates
+                Meal meal = allMeals.get(random.nextInt(allMeals.size()));
+                if (!selected.contains(meal)) selected.add(meal);
             }
             dailyMeals.put(type, selected);
-            storageManager.saveMealsToDatabase(type, selected); // Save meals to the database
+            storageManager.saveMealsToDatabase(type, selected); // Include date in insertion
         }
 
         showMeals(dailyMeals);
     }
 
     private void fetchAndDisplayDailyMeals() {
-        // Retrieve daily meals from the database grouped by meal type
         String query = "SELECT dm.meal_type, m.* FROM DailyMeals dm " +
-                "JOIN Meals m ON dm.meal_id = m.meal_id ORDER BY dm.meal_type";
+                "JOIN Meals m ON dm.meal_id = m.meal_id " +
+                "WHERE dm.date = ? ORDER BY dm.meal_type";
         Map<String, List<Meal>> dailyMeals = new LinkedHashMap<>();
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setDate(1, Date.valueOf(LocalDate.now()));
+            ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
                 String mealType = rs.getString("meal_type");
-                Meal meal = Meal.fromResultSet(rs); // Create Meal object
+                Meal meal = Meal.fromResultSet(rs);
                 dailyMeals.putIfAbsent(mealType, new ArrayList<>());
                 dailyMeals.get(mealType).add(meal);
             }

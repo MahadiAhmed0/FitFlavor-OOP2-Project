@@ -27,7 +27,7 @@ public class NutritionStatsService {
             SELECT dm.meal_type, m.calories, m.fats, m.proteins
             FROM DailyMeals dm
             JOIN Meals m ON dm.meal_id = m.meal_id
-            WHERE dm.date = ?
+           WHERE dm.date = ?
         """;
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
