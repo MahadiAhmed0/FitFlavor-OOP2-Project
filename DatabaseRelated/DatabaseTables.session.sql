@@ -40,3 +40,9 @@ CREATE TABLE DailyMeals (
     day_of_week VARCHAR(10),
     FOREIGN KEY (meal_id) REFERENCES Meals(meal_id)
 );
+
+CREATE TABLE HealthTips (
+    tip_id INT AUTO_INCREMENT PRIMARY KEY,
+    tip_text VARCHAR(255) NOT NULL
+);
+

@@ -29,7 +29,7 @@ public class HomePageUI {
             switch (choice) {
                 case 1:
                     System.out.println("Launching Meal Recommendation System...");
-                    MealSystemUI meal = new MealSystemUI(scanner);
+                    MealSystemUI meal = new MealSystemUI(scanner, username);
                     try {
                         meal.start(); 
                     } catch (Exception e) {

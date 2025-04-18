@@ -1,23 +1,51 @@
 package BackEnd;
 
-
 import java.sql.*;
 import java.sql.Date;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 
+
 public class MealRecommendationSystem {
     private final MealLoader mealLoader;
     private final MealStorageManager storageManager;
     private final List<Meal> allMeals;
+    private final String username;
+    private int age;
+    private double weight;
 
-    public MealRecommendationSystem() {
+    
+    public MealRecommendationSystem(String username) {
+        this.username = username;
         mealLoader = new MealLoader();
         allMeals = mealLoader.loadMeals();
         storageManager = new MealStorageManager();
+        loadUserData();  
     }
 
+    
+    private void loadUserData() {
+        String query = "SELECT age, weight FROM users WHERE username = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, this.username);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                this.age = rs.getInt("age");
+                this.weight = rs.getDouble("weight");
+            } else {
+                System.out.println("⚠️ User data not found for username: " + this.username);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("⚠️ Error loading user data: " + e.getMessage());
+        }
+    }
+
+    
     public void suggestDailyMeals() {
         if (isNewDateOrEmpty()) {
             System.out.println("📅 New day detected or no meals found. Generating meals for today...");
@@ -29,6 +57,7 @@ public class MealRecommendationSystem {
         }
     }
 
+    
     public void suggestWeeklyMeals() {
         if (isNewWeekOrEmpty()) {
             System.out.println("📅 New week detected or no weekly meals found. Generating weekly plan...");
@@ -40,6 +69,7 @@ public class MealRecommendationSystem {
         }
     }
 
+    
     private void fetchAndDisplayWeeklyMeals() {
         String query = "SELECT wm.day_of_week, wm.meal_type, m.* FROM WeeklyMeals wm " +
                 "JOIN Meals m ON wm.meal_id = m.meal_id " +
@@ -76,7 +106,7 @@ public class MealRecommendationSystem {
         }
     }
 
-
+    
     private boolean isNewWeekOrEmpty() {
         String query = "SELECT COUNT(*) AS meal_count FROM WeeklyMeals WHERE week_start_date = ?";
         LocalDate startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY);
@@ -96,6 +126,7 @@ public class MealRecommendationSystem {
         return true;
     }
 
+    
     private void clearOldWeeklyMeals() {
         String query = "DELETE FROM WeeklyMeals";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -107,6 +138,7 @@ public class MealRecommendationSystem {
         }
     }
 
+    
     private void generateAndSaveWeeklyMeals() {
         String[] types = {"breakfast", "lunch", "dinner", "snack"};
         DayOfWeek[] days = DayOfWeek.values();
@@ -115,7 +147,7 @@ public class MealRecommendationSystem {
 
         for (DayOfWeek day : days) {
             for (String type : types) {
-                Meal meal = allMeals.get(random.nextInt(allMeals.size()));
+                Meal meal = selectMealForUser();
                 storageManager.saveWeeklyMealToDatabase(type, meal, startOfWeek, day.name());
             }
         }
@@ -123,10 +155,52 @@ public class MealRecommendationSystem {
         System.out.println("✅ Weekly meals generated and saved.");
     }
 
+    private double calculateBMR() {
+        
+        double weightInKg = this.weight;  
+        int ageInYears = this.age;  
+        int heightInCm = 175;  
 
+        
+        return 10 * weightInKg + 6.25 * heightInCm - 5 * ageInYears + 5;
+    }
 
+    
+    private Meal selectMealForUser() {
+        
+        
+        int calorieTarget = 0;
+        double bmr = calculateBMR();
+        
+        if (bmr > 2500) {  
+            
+            calorieTarget = (int) (bmr - (1000 + new Random().nextInt(500)));  
+        } else if (bmr < 2000) {  
+            
+            calorieTarget = (int) (bmr + (1000 + new Random().nextInt(500)));  
+        } else {
+            
+            calorieTarget = (int) bmr;
+        }
 
+        
+        List<Meal> suitableMeals = new ArrayList<>();
+        for (Meal meal : allMeals) {
+            if (meal.getCalories() <= calorieTarget + 100 && meal.getCalories() >= calorieTarget - 100) {
+                suitableMeals.add(meal);
+            }
+        }
 
+        
+        if (!suitableMeals.isEmpty()) {
+            return suitableMeals.get(new Random().nextInt(suitableMeals.size()));
+        } else {
+            
+            return allMeals.get(new Random().nextInt(allMeals.size()));
+        }
+    }
+
+    
     private boolean isNewDateOrEmpty() {
         String query = "SELECT COUNT(*) AS meal_count FROM DailyMeals WHERE date = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -141,9 +215,10 @@ public class MealRecommendationSystem {
         } catch (SQLException e) {
             System.out.println("⚠️ Error checking DailyMeals for today's date: " + e.getMessage());
         }
-        return true; 
+        return true;
     }
 
+    
     private void clearOldDailyMeals() {
         String query = "DELETE FROM DailyMeals";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -155,6 +230,7 @@ public class MealRecommendationSystem {
         }
     }
 
+    
     private void generateAndSaveDailyMeals() {
         String[] types = {"breakfast", "lunch", "dinner", "snack"};
         Map<String, List<Meal>> dailyMeals = new LinkedHashMap<>();
@@ -163,16 +239,17 @@ public class MealRecommendationSystem {
         for (String type : types) {
             List<Meal> selected = new ArrayList<>();
             while (selected.size() < 1) {
-                Meal meal = allMeals.get(random.nextInt(allMeals.size()));
+                Meal meal = selectMealForUser();
                 if (!selected.contains(meal)) selected.add(meal);
             }
             dailyMeals.put(type, selected);
-            storageManager.saveMealsToDatabase(type, selected); 
+            storageManager.saveMealsToDatabase(type, selected);
         }
 
         showMeals(dailyMeals);
     }
 
+    
     private void fetchAndDisplayDailyMeals() {
         String query = "SELECT dm.meal_type, m.* FROM DailyMeals dm " +
                 "JOIN Meals m ON dm.meal_id = m.meal_id " +
@@ -199,6 +276,7 @@ public class MealRecommendationSystem {
         showMeals(dailyMeals);
     }
 
+    
     private void showMeals(Map<String, List<Meal>> dailyMeals) {
         dailyMeals.forEach((type, meals) -> {
             System.out.println("\n🍴 " + type.toUpperCase());

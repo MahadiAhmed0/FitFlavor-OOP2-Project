@@ -14,10 +14,10 @@ public class MealSystemUI {
     private final Scanner scanner;
     private final MealRecommendationSystem recommendationSystem;
     private final MealStorageManager storageManager;
-
-    public MealSystemUI(Scanner scanner) {
+    String username;
+    public MealSystemUI(Scanner scanner, String username) {
         this.scanner = new Scanner(System.in);
-        this.recommendationSystem = new MealRecommendationSystem();
+        this.recommendationSystem = new MealRecommendationSystem(username);
         this.storageManager = new MealStorageManager();
     }
 
